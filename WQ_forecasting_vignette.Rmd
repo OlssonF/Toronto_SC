@@ -57,7 +57,7 @@ We start forecasting by first looking at the historic data - called the 'targets
 
 ```{r eval=TRUE, echo = TRUE, error=FALSE, warning=FALSE, message=FALSE}
 #read in the targets data
-targets <- read_csv('targets-neon-chla.csv')
+targets <- read_csv('Data/targets-neon-chla.csv')
 target_sites <- targets |> 
   distinct(site_id) |> 
   pull()
