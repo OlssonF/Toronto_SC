@@ -25,7 +25,7 @@ This is a vignette on producing surface lake chlorophyll forecasts using NEON da
 
 For the rjags code to work you first you need to install JAGS code from: [https://mcmc-jags.sourceforge.io](https://mcmc-jags.sourceforge.io)
 
-The following code chunk should be run to install packages.
+The following code chunk should be run to install packages. If you are using the eco4cast/neon4cast Docker container you will not need to do this install step. 
 
 ```{r eval = F}
 install.packages('remotes')
@@ -49,6 +49,9 @@ library(tidybayes)
 
 If you do not wish to run the code yourself you can follow along via the rendered markdown which can be viewed from the [Github repository](https://github.com/OlssonF/NEON-forecast-challenge-workshop). 
 
+# The case study
+
+In this water quality forecasting example we will produce 30 day ahead forecasts of lake surface chlorophyll concentration. Chlorophyll concentration is a proxy used in water quality monitoring for algal biomass. Large chlorophyll values can be an indication of algal blooms. Algal blooms can be a problem for managers as they are linked to low oxygen concentrations, fish kills and toxin production, all important water quality parameters. The concentration of chlorophyll in natural waters is driven by a complex interaction of temperatures, nutrients, and hydrodynamic conditions that is not well quantified and can be quite stochastic in nature - a great challenge for forecasters!
 
 # The forecasting workflow
 ## Read in the data
@@ -92,7 +95,6 @@ targets %>%
 
 ```
 
-Chlorophyll concentration is a proxy used in water quality monitoring for algal biomass. Large chlorophyll values are indication of algal blooms and important water quality parameter. Chlorophyll concentration in natural waters is driven by a complex interaction of temperatures, nutrients, hydrodynamic conditions that is not well quantified and can be quite stochastic in nature. 
 
 # Introducing co-variates
 
