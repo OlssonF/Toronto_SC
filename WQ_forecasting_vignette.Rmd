@@ -250,11 +250,11 @@ model{
   #Loop through data points
   for(i in 2:n){
       # Process model
-      chla_latent[i] <- beta1 * chla_latent[i-1] + beta2 * air_temp[i]
-      chla_pred[i] ~ dnorm(chla_latent[i], tau_process)
+      chla_pred[i] <- beta1 * chla_latent[i-1] + beta2 * air_temp[i]
+      chla_latent[i] ~ dnorm(chla_pred[i], tau_process)
 
       # Data model
-      y[i]  ~ dnorm(chla_pred[i], tau_obs)
+      y[i]  ~ dnorm(chla_latent[i], tau_obs)
   }
 }
 "
@@ -338,8 +338,8 @@ noaa_future_site <- noaa_future_daily |>
   filter(site_id == example_site)
 
 n_days <- length(unique(noaa_future_site$datetime))
-pred_latent <- matrix(NA, num_samples, n_days)   
-forecast <- matrix(NA, num_samples, n_days) 
+chla_latent <- matrix(NA, num_samples, n_days)   
+y <- matrix(NA, num_samples, n_days) #y is the forecasted observation
 forecast_df <- NULL
 
 
@@ -350,16 +350,16 @@ for(i in 1:num_samples){
   noaa_ensemble <- sample(x = 1:30, size = 1)
   noaa_future_site_ens <- noaa_future_site |> filter(parameter == noaa_ensemble)
   #Initialize with a sample from the most recent latent state posterior distribution
-  pred_latent[i,1] <- chain$chla_latent[sample_index]
-  forecast[i, 1] <- rnorm(1, pred_latent[i,1], sd = data$sd_obs)
+  chla_latent[i,1] <- chain$chla_latent[sample_index]
+  y[i, 1] <- rnorm(1, chla_latent[i,1], sd = data$sd_obs)
   
   #loop over forecast days
   for(j in 2:n_days){
-    pred <- pred_latent[i,j-1] * chain$beta1[sample_index] +
+    pred <- chla_latent[i,j-1] * chain$beta1[sample_index] +
       noaa_future_site_ens$air_temperature[j] * chain$beta2[sample_index]
     
-    pred_latent[i,j] <- rnorm(1, pred, chain$sd_process[sample_index])
-    forecast[i,j] <- rnorm(1, pred_latent[i,j], sd = data$sd_obs)
+    chla_latent[i,j] <- rnorm(1, pred, chain$sd_process[sample_index])
+    y[i,j] <- rnorm(1, chla_latent[i,j], sd = data$sd_obs)
     
   }
   
@@ -368,7 +368,7 @@ for(i in 1:num_samples){
                site_id = example_site,
                variable = "chla",
                parameter = i,
-               prediction = forecast[i, ])
+               prediction = y[i, ])
   
   forecast_df <- bind_rows(forecast_df, df)
 }
