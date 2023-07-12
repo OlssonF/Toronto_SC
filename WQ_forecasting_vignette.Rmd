@@ -116,19 +116,16 @@ Note: This code chunk can take a little to execute as it accesses the NOAA data 
 
 ```{r, message=FALSE}
 # past stacked weather
-df_past <- neon4cast::noaa_stage3()
+bucket <- "neon4cast-drivers/noaa/gefs-v12/stage3/parquet/"
+s3_past <- arrow::s3_bucket(bucket, endpoint_override = "data.ecoforecast.org", anonymous = TRUE)
 
 variables <- c("air_temperature")
 #Other variable names can be found at https://projects.ecoforecast.org/neon4cast-docs/Shared-Forecast-Drivers.html#stage-3
 
-df_past |> 
+noaa_past <- arrow::open_dataset(s3_past) |> 
   dplyr::filter(site_id %in% target_sites,
                 datetime >= ymd('2017-01-01'),
                 variable %in% variables) |> 
-  arrow::write_dataset('NOAA/noaa_past', partitioning = c('site_id'))
-
-
-noaa_past <- arrow::open_dataset('NOAA/noaa_past') |> 
   collect()
 
 noaa_past[1:10,]
@@ -159,18 +156,16 @@ We can then look at the future weather forecasts in the same way but using the `
 # generate forecast(s) for June 2023
 forecast_date <- as_date(max(targets$datetime))
 
-df_future <- neon4cast::noaa_stage2()
+bucket <- paste0("neon4cast-drivers/noaa/gefs-v12/stage2/parquet/0/", forecast_date) 
+s3_future <- arrow::s3_bucket(bucket = bucket, endpoint_override = 'data.ecoforecast.org', anonymous = TRUE)
 
 variables <- c("air_temperature")
 
-df_future |> 
-  dplyr::filter(reference_datetime == forecast_date,
+noaa_future <- arrow::open_dataset(s3_future) |> 
+  dplyr::filter(#reference_datetime == forecast_date,
                 datetime >= forecast_date,
                 site_id %in% target_sites,
                 variable %in% variables) |> 
-  arrow::write_dataset('NOAA/noaa_future', partitioning = c('site_id'))
-
-noaa_future <- arrow::open_dataset('NOAA/noaa_future') |> 
   collect()
 
 ```
